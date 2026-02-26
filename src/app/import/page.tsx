@@ -13,6 +13,7 @@ export default function ImportPage() {
   const [pasteValue, setPasteValue] = useState("");
   const [questions, setQuestions] = useState<AnyQuestion[]>([]);
   const [results, setResults] = useState<ReturnType<typeof parseImportJson>["results"]>([]);
+  const [firstError, setFirstError] = useState<ReturnType<typeof parseImportJson>["firstError"]>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [loadingSample, setLoadingSample] = useState(false);
   const [completingIndex, setCompletingIndex] = useState<number | null>(null);
@@ -25,12 +26,13 @@ export default function ImportPage() {
       setParseError("请先粘贴 JSON");
       return;
     }
-    const { questions: qs, results: rs } = parseImportJson(pasteValue.trim(), true);
+    const { questions: qs, results: rs, firstError: fe } = parseImportJson(
+      pasteValue.trim(),
+      true
+    );
     setQuestions(qs);
     setResults(rs);
-    if (qs.length === 0 && rs[0]?.errors?.length) {
-      setParseError(rs[0].errors.join("；"));
-    }
+    setFirstError(fe ?? null);
   }, [pasteValue]);
 
   const addQuestions = useQuestionStore((s) => s.add);
@@ -40,6 +42,7 @@ export default function ImportPage() {
     setPasteValue("");
     setQuestions([]);
     setResults([]);
+    setFirstError(null);
     const total = useQuestionStore.getState().questions.length;
     alert(`已导入 ${questions.length} 题，当前题库共 ${total} 题。`);
   }, [questions, addQuestions]);
@@ -86,6 +89,7 @@ export default function ImportPage() {
       setPasteValue(JSON.stringify(Array.isArray(data) ? data : [data], null, 2));
       setQuestions([]);
       setResults([]);
+      setFirstError(null);
     } catch (e) {
       setParseError(e instanceof Error ? e.message : "加载示例题失败");
     } finally {
@@ -99,6 +103,7 @@ export default function ImportPage() {
       if (q) setPasteValue(JSON.stringify(q, null, 2));
       setQuestions([]);
       setResults([]);
+      setFirstError(null);
     },
     [questions]
   );
@@ -171,6 +176,32 @@ export default function ImportPage() {
           </div>
           {parseError && (
             <p className="mt-2 text-sm text-[var(--error)]">{parseError}</p>
+          )}
+          {/* 解析后 0 条通过时：展示第一条失败结果的错误（红）与警告（黄） */}
+          {firstError && questions.length === 0 && (
+            <div className="mt-4 space-y-2">
+              {firstError.errors.map((err, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-1 text-sm text-[var(--error)]"
+                >
+                  <span>❌</span> {err}
+                </div>
+              ))}
+              {firstError.warnings.map((warn, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-1 text-sm text-amber-600"
+                >
+                  <span>⚠️</span> {warn}
+                </div>
+              ))}
+            </div>
+          )}
+          {results.length > 0 && questions.length > 0 && (
+            <p className="mt-2 text-sm text-[var(--success)]">
+              ✅ 解析通过 {questions.length} 条，可在下方确认后导入
+            </p>
           )}
         </section>
 

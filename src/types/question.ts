@@ -1,5 +1,5 @@
 /**
- * TCF 题目核心类型（严格遵循规范）
+ * TCF 题目核心类型 — 与 docs/tcf-question-schema.md 保持一致
  */
 
 export type QuestionSource =
@@ -17,6 +17,15 @@ export type QuestionStatus =
 
 export type TCFModule = "CO" | "CE" | "EE" | "EO";
 export type TCFLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+
+export type PassageType = "notice" | "email" | "ad" | "news" | "essay" | "letter";
+export type WritingTaskType = "letter" | "article" | "essay" | "message";
+
+/** 选择题选项 */
+export interface Option {
+  id: string;
+  text: string;
+}
 
 // ===== 辅助理解数据（A1 用户） =====
 
@@ -86,7 +95,7 @@ export interface ListeningQuestion extends BaseQuestion {
   audioConfig?: { voiceId: string; speed: number; language: "fr" };
   transcript: { start: number; end: number; text: string; translation: string }[];
   question: string;
-  options: { id: string; text: string }[];
+  options: Option[];
   correctAnswer: string;
   distractorAnalysis: Record<string, string>;
 }
@@ -94,11 +103,12 @@ export interface ListeningQuestion extends BaseQuestion {
 export interface ReadingQuestion extends BaseQuestion {
   module: "CE";
   passage: string;
-  passageType: "notice" | "email" | "ad" | "news" | "essay" | "letter";
+  passageType: PassageType;
   question: string;
-  options: { id: string; text: string }[];
+  options: Option[];
   correctAnswer: string;
   synonymMap: { original: string; replaced: string; location: string }[];
+  distractorAnalysis: Record<string, string>;
 }
 
 export interface WritingTask extends BaseQuestion {
@@ -106,7 +116,7 @@ export interface WritingTask extends BaseQuestion {
   prompt: string;
   taskLevel: 1 | 2 | 3;
   wordRange: { min: number; max: number };
-  taskType: "letter" | "article" | "essay" | "message";
+  taskType: WritingTaskType;
   requiredPoints: string[];
   formatRequirements: string[];
   sampleAnswer: string;
@@ -136,3 +146,34 @@ export type AnyQuestion =
   | ReadingQuestion
   | WritingTask
   | SpeakingTask;
+
+/** 联合类型别名，用于通用处理 */
+export type TCFQuestion = AnyQuestion;
+
+export function isMultipleChoice(
+  q: TCFQuestion
+): q is ListeningQuestion | ReadingQuestion {
+  return q.module === "CO" || q.module === "CE";
+}
+
+export function isProductionTask(
+  q: TCFQuestion
+): q is WritingTask | SpeakingTask {
+  return q.module === "EE" || q.module === "EO";
+}
+
+export function isListening(q: TCFQuestion): q is ListeningQuestion {
+  return q.module === "CO";
+}
+
+export function isReading(q: TCFQuestion): q is ReadingQuestion {
+  return q.module === "CE";
+}
+
+export function isWriting(q: TCFQuestion): q is WritingTask {
+  return q.module === "EE";
+}
+
+export function isSpeaking(q: TCFQuestion): q is SpeakingTask {
+  return q.module === "EO";
+}

@@ -44,6 +44,10 @@ pnpm-debug.log*
 coverage
 .nyc_output
 
+# Docs (plans, notes)
+docs/
+
 # Misc
 .turbo
 *.pem
+

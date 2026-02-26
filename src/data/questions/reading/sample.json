@@ -19,7 +19,14 @@
       { "id": "D", "text": "Pour annuler une commande." }
     ],
     "correctAnswer": "B",
-    "synonymMap": [],
+    "synonymMap": [
+      { "original": "obtenir des informations sur les tarifs", "replaced": "obtenir des informations sur les tarifs", "location": "正文首句" }
+    ],
+    "distractorAnalysis": {
+      "A": "文中未提及索要报价单。",
+      "C": "文中未提及投诉服务。",
+      "D": "文中未提及取消订单。"
+    },
     "explanation": "文中明确提到 elle souhaite obtenir des informations sur les tarifs（她希望获得关于价格的信息），因此选 B。",
     "createdAt": "2025-02-25T00:00:00.000Z",
     "assist": {
@@ -61,6 +68,14 @@
           "pos": "n.m.pl.",
           "example": "les tarifs de la société",
           "exampleTranslation": "公司价格",
+          "frequency": "high"
+        },
+        {
+          "word": "contacté",
+          "meaning": "联系了",
+          "pos": "v.",
+          "example": "a contacté la société",
+          "exampleTranslation": "联系了公司",
           "frequency": "high"
         }
       ]
