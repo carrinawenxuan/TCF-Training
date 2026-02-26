@@ -80,15 +80,15 @@ export function AssistPanel({
         </div>
       )}
 
-      {showWordByWord && assist.wordByWord?.length > 0 && (
+      {showWordByWord && (assist.wordByWord?.length ?? 0) > 0 && (
         <div className="mb-3">
-          <WordByWordView items={assist.wordByWord} />
+          <WordByWordView items={assist.wordByWord ?? []} />
         </div>
       )}
 
-      {showGrammar && assist.grammarNotes?.length > 0 && (
+      {showGrammar && (assist.grammarNotes?.length ?? 0) > 0 && (
         <div className="space-y-2">
-          {assist.grammarNotes.map((n, i) => (
+          {(assist.grammarNotes ?? []).map((n, i) => (
             <GrammarTooltip key={i} note={n} />
           ))}
         </div>

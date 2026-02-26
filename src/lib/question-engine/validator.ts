@@ -56,7 +56,7 @@ function validateListening(
   }
   const assist = obj.assist as Record<string, unknown> | undefined;
   if (assist && typeof assist === "object") {
-    if (!(assist.optionTranslations as unknown[]?.length)) {
+    if (!(Array.isArray(assist.optionTranslations) && assist.optionTranslations.length)) {
       errors.push("听力题缺少 assist.optionTranslations");
     }
     if (!hasValue(assist.passageTranslation)) {
@@ -66,7 +66,7 @@ function validateListening(
   const transcript = obj.transcript as unknown[] | undefined;
   if (Array.isArray(transcript)) {
     const missing = transcript.some(
-      (t: { translation?: string }) => !(t && hasValue(t.translation))
+      (t: unknown) => !(t && hasValue((t as { translation?: string }).translation))
     );
     if (missing) warnings.push("部分 transcript 段落缺少 translation");
   }
@@ -94,7 +94,7 @@ function validateReading(
   }
   const assist = obj.assist as Record<string, unknown> | undefined;
   if (assist && typeof assist === "object") {
-    if (!(assist.optionTranslations as unknown[]?.length)) {
+    if (!(Array.isArray(assist.optionTranslations) && assist.optionTranslations.length)) {
       errors.push("阅读题缺少 assist.optionTranslations");
     }
     if (!hasValue(assist.passageTranslation)) {
@@ -137,7 +137,7 @@ function validateWriting(
     if (!hasValue(assist.passageTranslation)) {
       errors.push("写作题缺少 assist.passageTranslation（范文翻译）");
     }
-    if (!(assist.grammarNotes as unknown[]?.length)) {
+    if (!(Array.isArray(assist.grammarNotes) && assist.grammarNotes.length)) {
       errors.push("写作题缺少 assist.grammarNotes");
     }
     if (assist.optionTranslations !== undefined) {
@@ -172,7 +172,7 @@ function validateSpeaking(
     if (!hasValue(assist.passageTranslation)) {
       errors.push("口语题缺少 assist.passageTranslation（引导问题翻译）");
     }
-    if (!(assist.grammarNotes as unknown[]?.length)) {
+    if (!(Array.isArray(assist.grammarNotes) && assist.grammarNotes.length)) {
       errors.push("口语题缺少 assist.grammarNotes");
     }
     if (assist.optionTranslations !== undefined) {
@@ -238,10 +238,10 @@ export function validateQuestion(
     }
     const module = obj.module as string;
     if (module === "CO" || module === "CE") {
-      if (!(assist.optionTranslations as unknown[]?.length)) autoFixable.push("assist.optionTranslations");
+      if (!(Array.isArray(assist.optionTranslations) && assist.optionTranslations.length)) autoFixable.push("assist.optionTranslations");
     }
-    if (!(assist.wordByWord as unknown[]?.length)) autoFixable.push("assist.wordByWord");
-    if (!(assist.grammarNotes as unknown[]?.length) && (module === "EE" || module === "EO")) {
+    if (!(Array.isArray(assist.wordByWord) && assist.wordByWord.length)) autoFixable.push("assist.wordByWord");
+    if (!(Array.isArray(assist.grammarNotes) && assist.grammarNotes.length) && (module === "EE" || module === "EO")) {
       autoFixable.push("assist.grammarNotes");
     }
     if (!hasValue(assist.passageTranslation)) autoFixable.push("assist.passageTranslation");
@@ -293,7 +293,7 @@ export function validateQuestion(
   if (!normalized.knowledgePoints) normalized.knowledgePoints = [];
   if (typeof normalized.difficulty !== "number") normalized.difficulty = 5;
 
-  return { data: normalized as AnyQuestion, result };
+  return { data: normalized as unknown as AnyQuestion, result };
 }
 
 /**
@@ -302,7 +302,7 @@ export function validateQuestion(
 export function parseImportJson(
   jsonString: string,
   setSourceAsScreenshotImport: boolean
-): { questions: AnyQuestion[]; results: ValidationResult[] } {
+): { questions: AnyQuestion[]; results: ValidationResult[]; firstError?: ValidationResult } {
   const questions: AnyQuestion[] = [];
   const results: ValidationResult[] = [];
   let parsed: unknown;

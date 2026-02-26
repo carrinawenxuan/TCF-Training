@@ -2,26 +2,26 @@
 
 import { useState, useCallback } from "react";
 import { AssistPanel } from "@/components/shared/AssistPanel";
-import { PassageViewer } from "./PassageViewer";
-import { HighlightableText } from "./HighlightableText";
+import { AudioPlayer } from "@/components/shared/AudioPlayer";
+import { HighlightableText } from "@/components/reading/HighlightableText";
 import { useUserStore } from "@/lib/store/user-store";
 import { useFlashcardStore } from "@/lib/store/flashcard-store";
 import { shouldForceFullAssist } from "@/types/user";
-import type { ReadingQuestion as ReadingQuestionType } from "@/types/question";
+import type { ListeningQuestion as ListeningQuestionType } from "@/types/question";
 
-interface ReadingQuestionProps {
-  question: ReadingQuestionType;
+interface ListeningQuestionProps {
+  question: ListeningQuestionType;
   onAnswer?: (selectedId: string, correct: boolean) => void;
   showResult?: boolean;
   className?: string;
 }
 
-export function ReadingQuestion({
+export function ListeningQuestion({
   question,
   onAnswer,
   showResult = false,
   className = "",
-}: ReadingQuestionProps) {
+}: ListeningQuestionProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const profile = useUserStore((s) => s.profile);
   const forceAssist = shouldForceFullAssist(profile.currentLevel, question.level);
@@ -43,18 +43,14 @@ export function ReadingQuestion({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <PassageViewer
-        passage={question.passage}
-        passageTranslation={
-          forceAssist || assistMode.showTranslation === "always"
-            ? question.assist.passageTranslation
-            : undefined
-        }
-        keyVocabulary={question.assist.keyVocabulary}
-        showTranslation={
-          forceAssist || assistMode.showTranslation === "always"
-        }
-      />
+      <div>
+        <p className="mb-2 text-sm font-medium text-[var(--primary)]">听录音</p>
+        <AudioPlayer
+          src={question.audioUrl}
+          ttsText={question.audioText}
+          voiceId={question.audioConfig?.voiceId}
+        />
+      </div>
 
       <div className="rounded-xl border border-[var(--primary)]/20 bg-white p-4">
         <p className="mb-2 font-medium text-[var(--primary)]">题目</p>

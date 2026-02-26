@@ -13,7 +13,7 @@ export default function ImportPage() {
   const [pasteValue, setPasteValue] = useState("");
   const [questions, setQuestions] = useState<AnyQuestion[]>([]);
   const [results, setResults] = useState<ReturnType<typeof parseImportJson>["results"]>([]);
-  const [firstError, setFirstError] = useState<ReturnType<typeof parseImportJson>["firstError"]>(null);
+  const [firstError, setFirstError] = useState<ReturnType<typeof parseImportJson>["firstError"] | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
   const [loadingSample, setLoadingSample] = useState(false);
   const [completingIndex, setCompletingIndex] = useState<number | null>(null);

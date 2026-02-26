@@ -39,7 +39,7 @@ npm run dev
 
 ## 后续阶段
 
-- **Phase 2**: ElevenLabs TTS、听力题、记忆卡片（SM-2）
+- **Phase 2**（已完成）：ElevenLabs TTS、听力题（CO 练习 + AudioPlayer）、记忆卡片（SM-2 间隔重复 + 生词加入卡片）
 - **Phase 3**: 错误分类、AI 讲解、强化题生成与审核、难度自适应
 - **Phase 4**: 写作/口语、考试模式、数据分析
 
