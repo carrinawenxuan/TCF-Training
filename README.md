@@ -32,9 +32,10 @@ npm run dev
 
 ## Phase 1 功能
 
-- **题目导入中心** (`/import`)：粘贴 JSON、校验、解析、一键入库；复制听力/阅读/写作/口语 Prompt 模板
+- **题目导入中心** (`/import`)：粘贴 JSON、校验、解析、一键入库；**加载示例题**（从 `/data/questions/reading/sample.json`）；**补全缺失数据**（调用 `/api/ai/complete-assist`）；复制听力/阅读/写作/口语 Prompt 模板
 - **阅读练习** (`/reading/practice`)：CE 选择题 + AssistPanel（翻译 / 逐词 / 语法）+ 可点击词汇
 - **Dashboard**：模块入口、今日计划、连续天数、导入入口
+- **AI 接口**：配置 `OPENAI_API_KEY` 或 `ANTHROPIC_API_KEY` 及 `AI_PROVIDER` 后，可使用「补全缺失数据」与题目讲解
 
 ## 后续阶段
 

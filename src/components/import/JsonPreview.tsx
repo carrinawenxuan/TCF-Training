@@ -9,6 +9,7 @@ interface JsonPreviewProps {
   onConfirmImport: () => void;
   onAutoComplete: (index: number) => void;
   onEdit: (index: number) => void;
+  completingIndex?: number | null;
 }
 
 export function JsonPreview({
@@ -17,6 +18,7 @@ export function JsonPreview({
   onConfirmImport,
   onAutoComplete,
   onEdit,
+  completingIndex = null,
 }: JsonPreviewProps) {
   if (questions.length === 0) return null;
 
@@ -91,9 +93,10 @@ export function JsonPreview({
                   <button
                     type="button"
                     onClick={() => onAutoComplete(index)}
-                    className="rounded bg-[var(--accent)]/20 px-2 py-1 text-xs text-[var(--primary)] hover:bg-[var(--accent)]/30"
+                    disabled={completingIndex !== null}
+                    className="rounded bg-[var(--accent)]/20 px-2 py-1 text-xs text-[var(--primary)] hover:bg-[var(--accent)]/30 disabled:opacity-50"
                   >
-                    补全缺失数据
+                    {completingIndex === index ? "补全中…" : "补全缺失数据"}
                   </button>
                 )}
                 <button

@@ -2,19 +2,25 @@
 
 import { useState, useCallback } from "react";
 import { JsonPreview } from "@/components/import/JsonPreview";
-import { parseImportJson } from "@/lib/question-engine/validator";
+import { parseImportJson, validateQuestion } from "@/lib/question-engine/validator";
 import { useQuestionStore } from "@/lib/store/question-store";
 import { IMPORT_PROMPTS, type ImportPromptKey } from "@/lib/ai/prompts/import-templates";
 import type { AnyQuestion } from "@/types/question";
+
+const SAMPLE_JSON_URL = "/data/questions/reading/sample.json";
 
 export default function ImportPage() {
   const [pasteValue, setPasteValue] = useState("");
   const [questions, setQuestions] = useState<AnyQuestion[]>([]);
   const [results, setResults] = useState<ReturnType<typeof parseImportJson>["results"]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [loadingSample, setLoadingSample] = useState(false);
+  const [completingIndex, setCompletingIndex] = useState<number | null>(null);
+  const [completeError, setCompleteError] = useState<string | null>(null);
 
   const handleParse = useCallback(() => {
     setParseError(null);
+    setCompleteError(null);
     if (!pasteValue.trim()) {
       setParseError("请先粘贴 JSON");
       return;
@@ -38,9 +44,53 @@ export default function ImportPage() {
     alert(`已导入 ${questions.length} 题，当前题库共 ${total} 题。`);
   }, [questions, addQuestions]);
 
-  const handleAutoComplete = useCallback((_index: number) => {
-    // Phase 1 先占位：后续调用 API 补全 assist
-    alert("自动补全功能将在接入 AI 接口后可用，请先手动在 JSON 中补全或使用「题目讲解」生成。");
+  const handleAutoComplete = useCallback(async (index: number) => {
+    const q = questions[index];
+    if (!q) return;
+    setCompletingIndex(index);
+    setCompleteError(null);
+    try {
+      const res = await fetch("/api/ai/complete-assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCompleteError(data?.error ?? `请求失败 ${res.status}`);
+        return;
+      }
+      const updated = data.question as AnyQuestion;
+      const next = [...questions];
+      next[index] = updated;
+      setQuestions(next);
+      const { result } = validateQuestion(updated, { setSourceAsScreenshotImport: true });
+      const nextResults = [...results];
+      nextResults[index] = result;
+      setResults(nextResults);
+    } catch (e) {
+      setCompleteError(e instanceof Error ? e.message : "补全请求异常");
+    } finally {
+      setCompletingIndex(null);
+    }
+  }, [questions, results]);
+
+  const loadSample = useCallback(async () => {
+    setLoadingSample(true);
+    setParseError(null);
+    setCompleteError(null);
+    try {
+      const res = await fetch(SAMPLE_JSON_URL);
+      if (!res.ok) throw new Error(`加载失败: ${res.status}`);
+      const data = await res.json();
+      setPasteValue(JSON.stringify(Array.isArray(data) ? data : [data], null, 2));
+      setQuestions([]);
+      setResults([]);
+    } catch (e) {
+      setParseError(e instanceof Error ? e.message : "加载示例题失败");
+    } finally {
+      setLoadingSample(false);
+    }
   }, []);
 
   const handleEdit = useCallback(
@@ -102,18 +152,31 @@ export default function ImportPage() {
             className="min-h-[200px] w-full rounded-lg border border-[var(--primary)]/20 bg-white p-3 font-mono text-sm"
             spellCheck={false}
           />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleParse}
+              className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm text-white hover:opacity-90"
+            >
+              解析
+            </button>
+            <button
+              type="button"
+              onClick={loadSample}
+              disabled={loadingSample}
+              className="rounded-lg border border-[var(--primary)]/30 px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/5 disabled:opacity-50"
+            >
+              {loadingSample ? "加载中…" : "加载示例题"}
+            </button>
+          </div>
           {parseError && (
             <p className="mt-2 text-sm text-[var(--error)]">{parseError}</p>
           )}
-          <button
-            type="button"
-            onClick={handleParse}
-            className="mt-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm text-white hover:opacity-90"
-          >
-            解析
-          </button>
         </section>
 
+        {completeError && (
+          <p className="mb-2 text-sm text-[var(--error)]">{completeError}</p>
+        )}
         {questions.length > 0 && (
           <section className="mb-6">
             <JsonPreview
@@ -122,6 +185,7 @@ export default function ImportPage() {
               onConfirmImport={handleConfirmImport}
               onAutoComplete={handleAutoComplete}
               onEdit={handleEdit}
+              completingIndex={completingIndex}
             />
           </section>
         )}

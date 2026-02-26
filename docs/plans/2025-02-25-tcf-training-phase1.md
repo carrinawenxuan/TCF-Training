@@ -27,9 +27,11 @@
 - Create: `src/lib/ai/prompts/import-templates.ts`（listening/reading/writing/speaking 四类）
 - Modify: `src/app/import/page.tsx` — 增加「复制 Prompt 模板」按钮
 
-### Task 5: 辅助数据自动补全 API
-- Create: `src/app/api/ai/explain/route.ts`（题目讲解）, `src/lib/ai/prompts/question-explainer.ts`
-- Create: `src/app/api/ai/parse-screenshot/route.ts` 占位（可选）；补全逻辑可先走 explain 或单独补全接口
+### Task 5: 辅助数据自动补全 API ✅
+- Create: `src/app/api/ai/complete-assist/route.ts`（补全 assist + explanation，支持 OpenAI/Anthropic）
+- Create: `src/app/api/ai/explain/route.ts`（题目讲解，返回 explanation 文本）
+- Create: `src/lib/ai/prompts/question-explainer.ts`（buildAssistCompletePrompt）
+- Create: `src/app/api/ai/parse-screenshot/route.ts` 占位（501）
 
 ### Task 6: AssistPanel 与辅助组件
 - Create: `src/components/shared/AssistPanel.tsx`, `src/components/shared/WordByWordView.tsx`, `src/components/shared/SentenceBreakdown.tsx`, `src/components/shared/GrammarTooltip.tsx`
