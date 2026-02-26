@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #1e3a5f;
+  --accent: #c9a96e;
+  --success: #2d8a4e;
+  --error: #c44536;
+  --bg: #f8f6f1;
+  --co: #3b82f6;
+  --ce: #10b981;
+  --ee: #f59e0b;
+  --eo: #8b5cf6;
+  --assist-bg: #fef3c7;
+  --vocab-bg: #dbeafe;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--primary);
+}
+
+/* 辅助面板、词汇高亮 */
+.assist-panel {
+  background-color: var(--assist-bg);
+}
+.vocab-highlight {
+  background-color: var(--vocab-bg);
+}
