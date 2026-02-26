@@ -2,14 +2,26 @@
 
 import { useState, useCallback } from "react";
 import { JsonPreview } from "@/components/import/JsonPreview";
+import { ModuleTabs } from "@/components/import/ModuleTabs";
 import { parseImportJson, validateQuestion } from "@/lib/question-engine/validator";
 import { useQuestionStore } from "@/lib/store/question-store";
 import { IMPORT_PROMPTS, type ImportPromptKey } from "@/lib/ai/prompts/import-templates";
-import type { AnyQuestion } from "@/types/question";
+import type { AnyQuestion, TCFModule } from "@/types/question";
 
-const SAMPLE_JSON_URL = "/data/questions/reading/sample.json";
+const MODULE_TO_PROMPT_KEY: Record<TCFModule, ImportPromptKey> = {
+  CO: "listening",
+  CE: "reading",
+  EE: "writing",
+  EO: "speaking",
+};
+
+function getSampleUrl(module: TCFModule): string {
+  const m = module.toLowerCase();
+  return `/data/questions/${m}/sample.json`;
+}
 
 export default function ImportPage() {
+  const [selectedModule, setSelectedModule] = useState<TCFModule>("CE");
   const [pasteValue, setPasteValue] = useState("");
   const [questions, setQuestions] = useState<AnyQuestion[]>([]);
   const [results, setResults] = useState<ReturnType<typeof parseImportJson>["results"]>([]);
@@ -83,7 +95,7 @@ export default function ImportPage() {
     setParseError(null);
     setCompleteError(null);
     try {
-      const res = await fetch(SAMPLE_JSON_URL);
+      const res = await fetch(getSampleUrl(selectedModule));
       if (!res.ok) throw new Error(`加载失败: ${res.status}`);
       const data = await res.json();
       setPasteValue(JSON.stringify(Array.isArray(data) ? data : [data], null, 2));
@@ -91,11 +103,17 @@ export default function ImportPage() {
       setResults([]);
       setFirstError(null);
     } catch (e) {
-      setParseError(e instanceof Error ? e.message : "加载示例题失败");
+      const moduleLabel = { CO: "听力", CE: "阅读", EO: "口语", EE: "写作" }[selectedModule];
+      const msg = e instanceof Error ? e.message : "加载示例题失败";
+      setParseError(
+        msg.includes("404") || msg.includes("加载失败")
+          ? `暂无「${moduleLabel}」示例题，请使用下方「复制当前题型 Prompt」从截图生成。`
+          : msg
+      );
     } finally {
       setLoadingSample(false);
     }
-  }, []);
+  }, [selectedModule]);
 
   const handleEdit = useCallback(
     (index: number) => {
@@ -108,19 +126,26 @@ export default function ImportPage() {
     [questions]
   );
 
-  const copyPrompt = useCallback((key: ImportPromptKey) => {
+  const copyCurrentPrompt = useCallback(() => {
+    const key = MODULE_TO_PROMPT_KEY[selectedModule];
     const text = IMPORT_PROMPTS[key];
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(text);
-      alert("已复制到剪贴板，请到 Claude/ChatGPT 中粘贴并上传截图。");
+      const label = { CO: "听力", CE: "阅读", EO: "口语", EE: "写作" }[selectedModule];
+      alert(`已复制「${label}」Prompt，请到 Claude/ChatGPT 中粘贴并上传截图。`);
     }
-  }, []);
+  }, [selectedModule]);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
         <h1 className="mb-6 text-2xl font-bold text-[var(--primary)]">
           📥 题目导入中心
         </h1>
+
+        <section className="mb-6">
+          <h2 className="mb-2 text-sm font-medium text-[var(--primary)]">选择题型（导入 / 截图出题时按此类型，无需系统识别）</h2>
+          <ModuleTabs value={selectedModule} onChange={setSelectedModule} />
+        </section>
 
         <div className="mb-6 flex flex-wrap gap-2">
           <a
@@ -226,38 +251,15 @@ export default function ImportPage() {
             复制 Prompt 模板
           </h2>
           <p className="mb-3 text-sm text-[var(--primary)]/80">
-            需要让 AI 帮你解析截图？复制下面的 Prompt，在对话中粘贴并上传截图即可获得 JSON。
+            根据上方选中的题型复制 Prompt，在 Claude/ChatGPT 中粘贴并上传截图即可获得对应题型的 JSON（无需 AI 自动识别题型）。
           </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => copyPrompt("listening")}
-              className="rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/20"
-            >
-              📋 复制听力题 Prompt
-            </button>
-            <button
-              type="button"
-              onClick={() => copyPrompt("reading")}
-              className="rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/20"
-            >
-              📋 复制阅读题 Prompt
-            </button>
-            <button
-              type="button"
-              onClick={() => copyPrompt("writing")}
-              className="rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/20"
-            >
-              📋 复制写作题 Prompt
-            </button>
-            <button
-              type="button"
-              onClick={() => copyPrompt("speaking")}
-              className="rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/20"
-            >
-              📋 复制口语题 Prompt
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={copyCurrentPrompt}
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm text-white hover:opacity-90"
+          >
+            📋 复制当前题型（{selectedModule === "CO" ? "听力" : selectedModule === "CE" ? "阅读" : selectedModule === "EO" ? "口语" : "写作"}）Prompt
+          </button>
         </section>
     </main>
   );

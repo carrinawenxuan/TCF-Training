@@ -44,8 +44,17 @@ pnpm-debug.log*
 coverage
 .nyc_output
 
-# Docs (plans, notes)
+# --- 指导性 / 隐私（public 仓库不提交）---
+# 项目给 AI 用的上下文与规则
+PROJECT-CONTEXT.md
+# Cursor 规则、会话等（含工作流与本地配置）
+.cursor/
+# 内部/参考 PDF（避免版权或内部材料进库）
+Claude.pdf
+# 文档与计划（schema、修 bug 指南、Claude 指令等）
 docs/
+# Claude Project 用指令与格式（常本地使用）
+claude-project/
 
 # Misc
 .turbo
